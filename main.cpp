@@ -1,20 +1,10 @@
-// -*- mode: c++; c-basic-offset: 2; indent-tabs-mode: nil; -*-
-//
-// This code is public domain
-// (but note, that the led-matrix library this depends on is GPL v2)
-
-#include "led-matrix.h"
-#include "threaded-canvas-manipulator.h"
-
-#include <getopt.h>
+#include <led-matrix.h>
+#include <threaded-canvas-manipulator.h>
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <bass.h>
-
-#include <algorithm>
 
 #define SPECWIDTH 64 // display width (should be multiple of 4)
 #define SPECHEIGHT 32  // height (changing requires palette adjustments too)
@@ -90,7 +80,6 @@ public:
       BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
       for (x=0;x<SPECWIDTH;x++) {
         y=sqrt(fft[x+1])*3*SPECHEIGHT-4; // scale it (sqrt to make low values more visible)
-        // printf("x: %d, y: %d, y1: %d, y2: %d\n", x, y, y1, y2);
         if (y>SPECHEIGHT) y=SPECHEIGHT; // cap it
         y2 = SPECHEIGHT + 1;
         while (--y2>MAX(y,y1)) drawBarRow(x, y2, {0,0,0});
@@ -130,18 +119,15 @@ int main(int argc, char *argv[])
   }
 
 
-  // Initialize GPIO pins. This might fail when we don't have permissions.
+  // Need to be root for this
   GPIO io;
   if (!io.Init())
     return 1;
 
-  // The matrix, our 'frame buffer' and display updater.
   RGBMatrix *matrix = new RGBMatrix(&io, ROWS, CHAIN);
 
   Canvas *canvas = matrix;
 
-  // The ThreadedCanvasManipulator objects are filling
-  // the matrix continuously.
   ThreadedCanvasManipulator *image_gen = image_gen = new VolumeBars(canvas, REFRESH_RATE);
 
   // initialize BASS
@@ -155,7 +141,6 @@ int main(int argc, char *argv[])
 
   BASS_PluginLoad("libbass_aac.so",0); // load BASS_AAC (if present) for AAC support
 
-  // Image generating demo is crated. Now start the thread.
   image_gen->Start();
 
   char url[1000];
