@@ -32,7 +32,7 @@ DWORD chan;
 
 bool playing = false;
 
-RGB palette[] = {
+const RGB main_palette[] = {
   {0, 200, 0},
   {0, 200, 0},
   {0, 200, 0},
@@ -66,6 +66,11 @@ RGB palette[] = {
   {200, 0, 0},
   {200, 0, 0}
 };
+
+RGB palette[ROWS];
+
+uint16_t refresh_rate;
+
 #if (RASPBERRY_PI)
 class VolumeBars : public ThreadedCanvasManipulator {
 public:
@@ -94,13 +99,14 @@ public:
         y1=y;
         while (--y>=0) drawBarRow(x, y, palette[y]); // draw level
       }
-      usleep(delay_ms_ * 1000);
+      usleep(refresh_rate * 1000);
       if (playing && BASS_StreamGetFilePosition(chan, BASS_FILEPOS_CURRENT) == BASS_StreamGetFilePosition(chan, BASS_FILEPOS_SIZE))
       {
         printf("finished\n");
         playing = false;
       }
     }
+    printf("screw you\n");
   }
 
 private:
@@ -189,6 +195,12 @@ char** str_split(char* a_str, const char a_delim)
     return result;
 }
 
+void reset_colors()
+{
+  memcpy(palette, main_palette, sizeof(main_palette));
+  refresh_rate = REFRESH_RATE;
+}
+
 void handle_color(char* str)
 {
   char** tokens = str_split(str, ' ');
@@ -236,6 +248,11 @@ void handle_color(char* str)
   }
 }
 
+void handle_refresh(char* str)
+{
+  refresh_rate = atoi(str);
+}
+
 int main(int argc, char *argv[])
 {
 #if (RASPBERRY_PI)
@@ -244,6 +261,8 @@ int main(int argc, char *argv[])
             "Prepend 'sudo' to the command:\n\tsudo %s ...\n", argv[0]);
     return 1;
   }
+
+  reset_colors();
 
   // Need to be root for this
   GPIO io;
@@ -293,6 +312,14 @@ int main(int argc, char *argv[])
     else if (strncmp(url, "volume ", 7) == 0)
     {
       handle_volume(url+7);
+    }
+    else if (strncmp(url, "reset ", 6) == 0)
+    {
+      reset_colors();
+    }
+    else if (strncmp(url, "refresh ", 8) == 0)
+    {
+      handle_refresh(url+8);
     }
   }
 

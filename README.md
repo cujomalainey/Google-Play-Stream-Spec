@@ -33,6 +33,9 @@ redefined color of a level (0-3) using RGB color code
 ```volume <percent>```
 sets volume percent
 
+```reset ```
+make sure you have the trailing space, resets bar colors and refresh rate
+
 From C
 
 ```finished```
