@@ -324,6 +324,7 @@ int main(int argc, char *argv[])
     else if (strncmp(url, "stop ", 5) == 0)
     {
       BASS_Stop();
+      return 0;
     }
   }
 
