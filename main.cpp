@@ -7,6 +7,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <bass.h>
+#include <assert.h>
+#include <stdlib.h>
 
 #define SPECWIDTH 64 // display width (should be multiple of 4)
 #define SPECHEIGHT 32  // height (changing requires palette adjustments too)
@@ -117,11 +119,106 @@ void handle_play(char* str)
 {
     DWORD r;
     BASS_StreamFree(chan); // close old stream
-    if (!(chan=BASS_StreamCreateURL(str+5,0,BASS_STREAM_BLOCK|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE,NULL,(void*)r))) {
+    if (!(chan=BASS_StreamCreateURL(str,0,BASS_STREAM_BLOCK|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE,NULL,(void*)r))) {
       printf("BASS Error: %d\n", BASS_ErrorGetCode());
     } else {
       BASS_ChannelPlay(chan,FALSE);
     }
+}
+
+char** str_split(char* a_str, const char a_delim)
+{
+    char** result    = 0;
+    size_t count     = 0;
+    char* tmp        = a_str;
+    char* last_comma = 0;
+    char delim[2];
+    delim[0] = a_delim;
+    delim[1] = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp)
+    {
+        if (a_delim == *tmp)
+        {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+
+    /* Add space for trailing token. */
+    count += last_comma < (a_str + strlen(a_str) - 1);
+
+    /* Add space for terminating null string so caller
+       knows where the list of returned strings ends. */
+    count++;
+
+    result = (char**)malloc(sizeof(char*) * count);
+
+    if (result)
+    {
+        size_t idx  = 0;
+        char* token = strtok(a_str, delim);
+
+        while (token)
+        {
+            assert(idx < count);
+            *(result + idx++) = strdup(token);
+            token = strtok(0, delim);
+        }
+        assert(idx == count - 1);
+        *(result + idx) = 0;
+    }
+
+    return result;
+}
+
+void handle_color(char* str)
+{
+  char** tokens = str_split(str, ' ');
+  uint8_t color[4];
+  if (tokens)
+  {
+      int i;
+      for (i = 0; *(tokens + i); i++)
+      {
+          color[i] = atoi(*(tokens + i));
+          free(*(tokens + i));
+      }
+      free(tokens);
+  }
+  uint8_t upper, lower;
+  if (color[0] < 0 || color[0] >= 32)
+  {
+    return;
+  }
+  else if (color[0] == 0)
+  {
+    lower = 0;
+    upper = 11;
+  }
+  else if (color[0] == 1)
+  {
+    lower = 11;
+    upper = 21;
+  }
+  else if (color[0] == 2)
+  {
+    lower = 21;
+    upper = 27;
+  }
+  else if (color[0] == 3)
+  {
+    lower = 27;
+    upper = 32;
+  }
+  for (uint8_t i = lower; i < upper; i++)
+  {
+    palette[i].rgbRed = color[1];
+    palette[i].rgbGreen = color[2];
+    palette[i].rgbBlue = color[3];
+  }
 }
 
 int main(int argc, char *argv[])
@@ -162,9 +259,21 @@ int main(int argc, char *argv[])
   {
     fgets(url, sizeof(url), stdin);
     url[strcspn(url, "\n")] = 0;
-    if (strncmp(url, "play", 4) == 0)
+    if (strncmp(url, "play ", 5) == 0)
     {
-      handle_play(url);
+      handle_play(url+5);
+    }
+    else if (strncmp(url, "pause ", 6) == 0)
+    {
+      BASS_Pause();
+    }
+    else if (strncmp(url, "unpause ", 8) == 0)
+    {
+      BASS_Start();
+    }
+    else if (strncmp(url, "color ", 6) == 0)
+    {
+      handle_color(url+6);
     }
   }
 
