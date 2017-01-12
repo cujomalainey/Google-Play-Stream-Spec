@@ -112,6 +112,18 @@ private:
   int t_;
 };
 #endif
+
+void handle_play(char* str)
+{
+    DWORD r;
+    BASS_StreamFree(chan); // close old stream
+    if (!(chan=BASS_StreamCreateURL(str+5,0,BASS_STREAM_BLOCK|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE,NULL,(void*)r))) {
+      printf("BASS Error: %d\n", BASS_ErrorGetCode());
+    } else {
+      BASS_ChannelPlay(chan,FALSE);
+    }
+}
+
 int main(int argc, char *argv[])
 {
 #if (RASPBERRY_PI)
@@ -146,17 +158,13 @@ int main(int argc, char *argv[])
   image_gen->Start();
 #endif
   char url[1000];
-  DWORD r;
   while (true)
   {
     fgets(url, sizeof(url), stdin);
     url[strcspn(url, "\n")] = 0;
-    BASS_StreamFree(chan); // close old stream
-    if (!(chan=BASS_StreamCreateURL(url,0,BASS_STREAM_BLOCK|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE,NULL,(void*)r))) {
-      printf("BASS Error: %d\n", BASS_ErrorGetCode());
-      break; //TODO add proper error handling here
-    } else {
-      BASS_ChannelPlay(chan,FALSE);
+    if (strncmp(url, "play", 4) == 0)
+    {
+      handle_play(url);
     }
   }
 
