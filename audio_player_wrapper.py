@@ -10,24 +10,16 @@ class AudioPlayerProtocolV1:
         return "play {0}\n".format(stream_url)
     
     def pause_message(self):
-        return "pause\n"
+        return "pause \n"
     
     def unpause_message(self):
-        return "unpause\n"
+        return "unpause \n"
     
     def stop_message(self):
-        return "stop\n"
+        return "stop \n"
     
     def volume_with(self, percentage):
         return "volumne {0}\n".format(percentage)
-    
-def set_non_blocking(fd):
-    """
-    Set the file description of the given file descriptor to non-blocking.
-    """
-    flags = fcntl.fcntl(fd, fcntl.F_GETFL)
-    flags = flags | os.O_NONBLOCK
-    fcntl.fcntl(fd, fcntl.F_SETFL, flags)
 
 class AudioPlayer:
     def __init__(self, audio_player_protocol = AudioPlayerProtocolV1()):
@@ -97,8 +89,6 @@ class MusicService:
         return self._mobile_client
 
     def search_results_for(self, search_term, max_results=10):
-        #song_store_id = self.mobile_client().search(search_term)['song_hits'][0]['track']['storeId']
-        #return self.mobile_client().get_stream_url(song_store_id)
         search_results = self.mobile_client().search(search_term)['song_hits']
         results_to_return = min(max_results, len(search_results))
         
@@ -106,6 +96,73 @@ class MusicService:
     
     def get_stream_for(self, track):
         return self.mobile_client().get_stream_url(track['storeId']) 
+
+class Application:
+    def __init__(self, audio_player, music_service):
+        self.audio_player = audio_player
+        self.music_service = music_service
+        self.active = True
+        self.commands = { "1" : self.play_song,
+                          "2" : self.pause_song,
+                          "3" : self.unpause_song,
+                          "4" : self.stop_song,
+                          "5" : self.set_volume,
+                          "6" : self.exit }
+
+    def run(self):
+        self.audio_player.open()
+
+        while self.active:
+            print("What do you want to do")
+            print("1. Search for a song")
+            print("2. Pause current song")
+            print("3. Unpause current song")
+            print("4. Stop current song")
+            print("5. Set volume")
+            print("6. Exit")
+
+            command = input("")
+            print()
+            if command in self.commands:
+                self.commands[command]()
+            else:
+                print("{} is not an option.".format(command))
+    
+    def play_song(self):
+        search_term = input("Search for: ")
+        print()
+
+        song_results = self.music_service.search_results_for(search_term)
+
+        print("Select song to play:")
+        for item in enumerate(song_results):
+            print("{}. {} from {} by {}".format(item[0] + 1, item[1]['track']['title'], item[1]['track']['album'], item[1]['track']['artist']))
+        print()
+        
+        song_index = int(input("Select song: ")) - 1
+        print()
+        selected_track = song_results[song_index]['track']
+        stream = self.music_service.get_stream_for(selected_track)
+
+        self.audio_player.play(stream)
+    
+    def pause_song(self):
+        self.audio_player.pause()
+
+    def unpause_song(self):
+        self.audio_player.unpause()
+
+    def stop_song(self):
+        self.audio_player.stop()
+
+    def set_volume(self):
+        volume_percentage = input("New volume: ")
+        print()
+        self.audio_player.set_volume(volume_percentage)
+
+    def exit(self):
+        self.audio_player.close()
+        self.active = False
 
 def get_authenitcated_client():
     email = input("Email: ")
@@ -119,47 +176,8 @@ def get_authenitcated_client():
         return get_authenitcated_client()
     return client
 
-class Application:
-    def __init__(self, audio_player, music_service):
-        self.audio_player = audio_player
-        self.music_service = music_service
-        self.active = True
-        self.commands = { "1" : self.play_song,
-                          "2" : self.exit }
-
-    def run(self):
-        self.audio_player.open()
-
-        while self.active:
-            print("What do you want to do")
-            print("1. Search for a song")
-            print("2. Exit")
-
-            command = input("")
-            if command in self.commands:
-                self.commands[command]()
-            else:
-                print("{} is not an option.".format(command))
-    
-    def play_song(self):
-        search_term = input("Search for: ")
-        song_results = self.music_service.search_results_for(search_term)
-
-        print("Select song to play:")
-        for item in enumerate(song_results):
-            print("{}. {} - {}".format(item[0] + 1, item[1]['track']['title'], item[1]['track']['album']))
-        
-        song_index = int(input("Select song: ")) - 1
-        selected_track = song_results[song_index]['track']
-        stream = self.music_service.get_stream_for(selected_track)
-
-        self.audio_player.play(stream)
-    
-    def exit(self):
-        self.audio_player.close()
-        self.active = False
-
 if __name__ == "__main__":
+    print("Sign into your Google Music account:\n")
     client = get_authenitcated_client()
     
     audio_player = AudioPlayer()
