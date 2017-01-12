@@ -177,7 +177,7 @@ def get_authenitcated_client():
     email = input("Email: ")
     password = getpass.getpass("Password: ")
 
-    client = Mobileclient()
+    client = Mobileclient(debug_logging = False)
     client.login(email, password, Mobileclient.FROM_MAC_ADDRESS)
 
     if not client.is_authenticated():
