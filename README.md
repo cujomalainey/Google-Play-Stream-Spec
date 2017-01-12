@@ -15,6 +15,9 @@ Plays the given url immidietally
 ```pause```
 pause the current song
 
+```unpause```
+resumes song
+
 ```stop```
 stop the current song
 
@@ -23,6 +26,9 @@ skips the alloted amount of time
 
 ```quit```
 closes the process
+
+```color <level> <RED> <GREEN> <BLUE>```
+redefined color of a level (0-3) using RGB color code
 
 From C
 

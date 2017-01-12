@@ -35,3 +35,5 @@
 .DS_Store
 
 *.mp3
+*.dylib
+bass.h
