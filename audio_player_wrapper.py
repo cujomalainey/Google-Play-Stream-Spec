@@ -21,6 +21,15 @@ class AudioPlayerProtocolV1:
     def volume_with(self, percentage):
         return "volume {0}\n".format(percentage)
 
+    def reset_message(self):
+        return "reset \n"
+
+    def color_message(self, level, red, green, blue):
+        return "color {} {} {} {}\n".format(level, red, green, blue)
+
+    def refresh_rate(self, period):
+        return "refresh {}\n".format(period)
+
 class AudioPlayer:
     def __init__(self, audio_player_protocol = AudioPlayerProtocolV1()):
         self._audio_player_process = None
