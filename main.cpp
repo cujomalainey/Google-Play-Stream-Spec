@@ -103,6 +103,7 @@ public:
       if (playing && BASS_StreamGetFilePosition(chan, BASS_FILEPOS_CURRENT) == BASS_StreamGetFilePosition(chan, BASS_FILEPOS_SIZE))
       {
         printf("finished\n");
+        fflush(stdout);
         playing = false;
       }
     }
