@@ -107,7 +107,6 @@ public:
         playing = false;
       }
     }
-    printf("screw you\n");
   }
 
 private:
