@@ -35,5 +35,5 @@ sets volume percent
 
 From C
 
-```Finished```
+```finished```
 Playback for the current song has finished

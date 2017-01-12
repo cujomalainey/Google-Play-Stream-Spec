@@ -30,6 +30,8 @@ using namespace rgb_matrix;
 #endif
 DWORD chan;
 
+bool playing = false;
+
 RGB palette[] = {
   {0, 200, 0},
   {0, 200, 0},
@@ -93,6 +95,11 @@ public:
         while (--y>=0) drawBarRow(x, y, palette[y]); // draw level
       }
       usleep(delay_ms_ * 1000);
+      if (playing && BASS_StreamGetFilePosition(chan, BASS_FILEPOS_CURRENT) == BASS_StreamGetFilePosition(chan, BASS_FILEPOS_SIZE))
+      {
+        printf("finished\n");
+        playing = false;
+      }
     }
   }
 
@@ -123,6 +130,7 @@ void handle_play(char* str)
       printf("BASS Error: %d\n", BASS_ErrorGetCode());
     } else {
       BASS_ChannelPlay(chan,FALSE);
+      playing = true;
     }
 }
 
