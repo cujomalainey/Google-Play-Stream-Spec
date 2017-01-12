@@ -102,6 +102,15 @@ class MusicService:
         results_to_return = min(max_results, len(search_results))
 
         return search_results[:results_to_return]
+    
+    def playlist_results_for(self, search_term, max_results=10):
+        playlist_results = self.mobile_client.search(search_term)['playlist_hits']
+        results_to_return = min(max_results, len(playlist_results))
+
+        return playlist_results[:results_to_return]
+
+    def get_tracks_for(self, playlist_share_token):
+        return mc.get_shared_playlist_contents(playlist_share_token)
 
     def get_stream_for(self, track):
         return self.mobile_client().get_stream_url(track['storeId']) 
