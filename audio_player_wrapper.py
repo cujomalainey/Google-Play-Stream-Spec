@@ -104,28 +104,63 @@ class MusicService:
         return search_results[:results_to_return]
     
     def playlist_results_for(self, search_term, max_results=10):
-        playlist_results = self.mobile_client.search(search_term)['playlist_hits']
+        playlist_hits = self.mobile_client().search(search_term)['playlist_hits']
+        playlist_results = [hit['playlist'] for hit in playlist_hits]
         results_to_return = min(max_results, len(playlist_results))
 
         return playlist_results[:results_to_return]
 
     def get_tracks_for(self, playlist_share_token):
-        return mc.get_shared_playlist_contents(playlist_share_token)
+        track_hits = self.mobile_client().get_shared_playlist_contents(playlist_share_token)
+        tracks = [hit['track'] for hit in track_hits]
+
+        return tracks
 
     def get_stream_for(self, track):
         return self.mobile_client().get_stream_url(track['storeId']) 
+
+class TrackList:
+    def __init__(self):
+        self.clear()
+    
+    def clear(self):
+        self._tracks = []
+        self._position = 0
+
+    def tracks(self):
+        return self._tracks
+
+    def position(self):
+        return self._position
+
+    def set_position(self, new_position):
+        self._position = new_position
+
+    def increment_track(self):
+        self._position += 1
+
+    def add_track(self, track):
+        self._tracks.append(track)
+    
+    def remove_track_at(self, position):
+        self._tracks.pop(position)
+
+    def get_current_track(self):
+        return self._tracks[self.position()]
 
 class Application:
     def __init__(self, audio_player, music_service):
         self.audio_player = audio_player
         self.music_service = music_service
+        self.track_list = TrackList()
         self.active = True
         self.commands = { "1" : self.play_song,
-                          "2" : self.pause_song,
-                          "3" : self.unpause_song,
+                          "2" : self.play_playlist,
+                          "3" : self.pause_song,
+                          "4" : self.unpause_song,
                           "4" : self.stop_song,
-                          "5" : self.set_volume,
-                          "6" : self.exit }
+                          "6" : self.set_volume,
+                          "7" : self.exit }
 
     def run(self):
         self.audio_player.open()
@@ -133,11 +168,12 @@ class Application:
         while self.active:
             print("What do you want to do")
             print("1. Search for a song")
-            print("2. Pause current song")
-            print("3. Unpause current song")
-            print("4. Stop current song")
-            print("5. Set volume")
-            print("6. Exit")
+            print("2. Search for a playlist")
+            print("3. Pause current song")
+            print("4. Unpause current song")
+            print("5. Stop current song")
+            print("6. Set volume")
+            print("7. Exit")
 
             command = input("")
             print()
@@ -162,6 +198,31 @@ class Application:
         selected_track = song_results[song_index]['track']
         stream = self.music_service.get_stream_for(selected_track)
 
+        self.audio_player.play(stream)
+    
+    def play_playlist(self):
+        search_term = input("Search for playlist: ")
+        print()
+
+        playlist_results = self.music_service.playlist_results_for(search_term)
+
+        print("Select song to play:")
+        for item in enumerate(playlist_results):
+            print("{}. {}".format(item[0] + 1, item[1]['name']))
+        print()
+
+        playlist_index = int(input("Select playlist: ")) - 1
+        print()
+
+        selected_playlist_token = playlist_results[playlist_index]['shareToken']
+        tracks = self.music_service.get_tracks_for(selected_playlist_token)
+
+        self.track_list.clear()
+        
+        for track in tracks:
+            self.track_list.add_track(track)
+        
+        stream = self.music_service.get_stream_for(self.track_list.get_current_track())
         self.audio_player.play(stream)
 
     def pause_song(self):
