@@ -4,3 +4,27 @@ Creates a real time frequency spectrum display using google play music
 Purpose: Create a real time dynamic display powered by streamed music
 
 This project takes in a google play command and generates the specturm analysis and plays the stream at the same time.
+
+API between programs
+
+To C
+
+```play <URL>```
+Plays the given url immidietally
+
+```pause```
+pause the current song
+
+```stop```
+stop the current song
+
+```skip ##:##```
+skips the alloted amount of time
+
+```quit```
+closes the process
+
+From C
+
+```Finished```
+Playback for the current song has finished
