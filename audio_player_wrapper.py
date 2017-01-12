@@ -71,8 +71,23 @@ class AudioPlayer:
         
     def play(self, stream_url):
         play_message = self.audio_player_protocol().play_message_for(stream_url)
-        print(play_message)
         self.send_to_audio_player_process(play_message)
+    
+    def pause(self):
+        pause_message = self.audio_player_protocol().pause_message()
+        self.send_to_audio_player_process(pause_message)
+
+    def unpause(self):
+        unpause_message = self.audio_player_protocol().unpause_message()
+        self.send_to_audio_player_process(unpause_message)
+    
+    def stop(self):
+        stop_message = self.audio_player_protocol().stop_message()
+        self.send_to_audio_player_process(stop_message)
+    
+    def set_volume(self, volume_percentage):
+        volume_message = self.audio_player_protocol().volume_with(volume_percentage)
+        self.send_to_audio_player_process(volume_message)
 
 class MusicService:
     def __init__(self, mobile_client):
