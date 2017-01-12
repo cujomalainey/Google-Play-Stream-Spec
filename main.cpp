@@ -321,6 +321,10 @@ int main(int argc, char *argv[])
     {
       handle_refresh(url+8);
     }
+    else if (strncmp(url, "stop ", 5) == 0)
+    {
+      BASS_Stop();
+    }
   }
 
   BASS_Free();

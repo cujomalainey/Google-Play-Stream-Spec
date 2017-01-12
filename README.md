@@ -21,9 +21,6 @@ resumes song
 ```stop```
 stop the current song
 
-```skip ##:##```
-skips the alloted amount of time
-
 ```quit```
 closes the process
 
