@@ -30,6 +30,9 @@ closes the process
 ```color <level> <RED> <GREEN> <BLUE>```
 redefined color of a level (0-3) using RGB color code
 
+```volume <percent>```
+sets volume percent
+
 From C
 
 ```Finished```

@@ -126,6 +126,13 @@ void handle_play(char* str)
     }
 }
 
+void handle_volume(char* str)
+{
+  uint8_t vol = atoi(str);
+  BASS_SetVolume(vol/100.0);
+}
+
+// http://stackoverflow.com/questions/9210528/split-string-with-delimiters-in-c
 char** str_split(char* a_str, const char a_delim)
 {
     char** result    = 0;
@@ -274,6 +281,10 @@ int main(int argc, char *argv[])
     else if (strncmp(url, "color ", 6) == 0)
     {
       handle_color(url+6);
+    }
+    else if (strncmp(url, "volume ", 7) == 0)
+    {
+      handle_volume(url+7);
     }
   }
 
