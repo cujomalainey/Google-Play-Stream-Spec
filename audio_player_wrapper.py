@@ -69,6 +69,17 @@ class MusicService:
     def mobile_client(self):
         return self._mobile_client
 
+    def search_results_for(self, search_term, max_results=10):
+        #song_store_id = self.mobile_client().search(search_term)['song_hits'][0]['track']['storeId']
+        #return self.mobile_client().get_stream_url(song_store_id)
+        search_results = self.mobile_client().search(search_term)['song_hits']
+        results_to_return = min(max_results, len(search_results))
+        
+        return search_results[:results_to_return]
+    
+    def get_stream_for(self, track):
+        return self.mobile_client().get_stream_url(track['storeId']) 
+
 def get_authenitcated_client():
     email = input("Email: ")
     password = getpass.getpass("Password: ")
@@ -76,17 +87,56 @@ def get_authenitcated_client():
     client = Mobileclient()
     client.login(email, password, Mobileclient.FROM_MAC_ADDRESS)
     
+    if not client.is_authenticated():
+        print("Failied to authenticate, try again.")
+        return get_authenitcated_client()
     return client
 
-def get_stream(client, search_term):
-    song_store_id = client.search(search_term)['song_hits'][0]['track']['storeId']
-    return client.get_stream_url(song_store_id)
+class Application:
+    def __init__(self, audio_player, music_service):
+        self.audio_player = audio_player
+        self.music_service = music_service
+        self.active = True
+        self.commands = { "1" : self.play_song,
+                          "2" : self.exit }
+
+    def run(self):
+        self.audio_player.open()
+
+        while self.active:
+            print("What do you want to do")
+            print("1. Search for a song")
+            print("2. Exit")
+
+            command = input("")
+            if command in self.commands:
+                self.commands[command]()
+            else:
+                print("{} is not an option.".format(command))
+    
+    def play_song(self):
+        search_term = input("Search for: ")
+        song_results = self.music_service.search_results_for(search_term)
+
+        print("Select song to play:")
+        for item in enumerate(song_results):
+            print("{}. {} - {}".format(item[0] + 1, item[1]['track']['title'], item[1]['track']['album']))
+        
+        song_index = int(input("Select song: ")) - 1
+        selected_track = song_results[song_index]['track']
+        stream = self.music_service.get_stream_for(selected_track)
+
+        self.audio_player.play(stream)
+    
+    def exit(self):
+        self.audio_player.close()
+        self.active = False
 
 if __name__ == "__main__":
     client = get_authenitcated_client()
-    player = AudioPlayer()
-    stream_url = get_stream(client, input("search for: "))
-    player.open()
-    player.play(stream_url)
-    input("...")
-    player.close()
+    
+    audio_player = AudioPlayer()
+    music_service = MusicService(client)
+
+    app = Application(audio_player, music_service)
+    app.run()
