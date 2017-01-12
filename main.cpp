@@ -1,5 +1,7 @@
+#if (RASPBERRY_PI)
 #include <led-matrix.h>
 #include <threaded-canvas-manipulator.h>
+#endif
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,9 +23,9 @@ typedef struct {
   BYTE rgbRed,rgbGreen,rgbBlue;
 } RGB;
 #pragma pack()
-
+#if (RASPBERRY_PI)
 using namespace rgb_matrix;
-
+#endif
 DWORD chan;
 
 RGB palette[] = {
@@ -60,7 +62,7 @@ RGB palette[] = {
   {200, 0, 0},
   {200, 0, 0}
 };
-
+#if (RASPBERRY_PI)
 class VolumeBars : public ThreadedCanvasManipulator {
 public:
   VolumeBars(Canvas *m, int delay_ms=50)
@@ -109,15 +111,15 @@ private:
   int heightRed_;
   int t_;
 };
-
+#endif
 int main(int argc, char *argv[])
 {
+#if (RASPBERRY_PI)
   if (getuid() != 0) {
     fprintf(stderr, "Must run as root to be able to access /dev/mem\n"
             "Prepend 'sudo' to the command:\n\tsudo %s ...\n", argv[0]);
     return 1;
   }
-
 
   // Need to be root for this
   GPIO io;
@@ -129,7 +131,7 @@ int main(int argc, char *argv[])
   Canvas *canvas = matrix;
 
   ThreadedCanvasManipulator *image_gen = image_gen = new VolumeBars(canvas, REFRESH_RATE);
-
+#endif
   // initialize BASS
   if (!BASS_Init(-1,44100,0,NULL,NULL)) {
     printf("Can't initialize device\n");
@@ -140,9 +142,9 @@ int main(int argc, char *argv[])
   BASS_SetConfig(BASS_CONFIG_NET_PREBUF,0); // minimize automatic pre-buffering, so we can do it (and display it) instead
 
   BASS_PluginLoad("libbass_aac.so",0); // load BASS_AAC (if present) for AAC support
-
+#if (RASPBERRY_PI)
   image_gen->Start();
-
+#endif
   char url[1000];
   DWORD r;
   while (true)
@@ -159,10 +161,10 @@ int main(int argc, char *argv[])
   }
 
   BASS_Free();
-
+#if(RASPBERRY_PI)
   // Stop image generating thread.
   delete image_gen;
   delete canvas;
-
+#endif
   return 0;
 }
