@@ -8,18 +8,18 @@ from gmusicapi import Mobileclient
 class AudioPlayerProtocolV1:
     def play_message_for(self, stream_url):
         return "play {0}\n".format(stream_url)
-    
+
     def pause_message(self):
         return "pause \n"
-    
+
     def unpause_message(self):
         return "unpause \n"
-    
+
     def stop_message(self):
         return "stop \n"
-    
+
     def volume_with(self, percentage):
-        return "volumne {0}\n".format(percentage)
+        return "volume {0}\n".format(percentage)
 
 class AudioPlayer:
     def __init__(self, audio_player_protocol = AudioPlayerProtocolV1()):
