@@ -27,7 +27,7 @@ class AudioPlayer:
         self._is_listening_to_audio_player = False
         self._audio_player_listener_thread = None
         self._audio_player_protocol = audio_player_protocol
-    
+
     def audio_player_process(self):
         return self._audio_player_process
 
@@ -50,7 +50,7 @@ class AudioPlayer:
         self._is_listening_to_audio_player = True
         self._audio_player_listener_thread = threading.Thread(target=self.listen)
         self._audio_player_listener_thread.start()
-    
+
     def listen(self):
         while self._is_listening_to_audio_player:
             output = self._audio_player_process.stdout.readline()
@@ -60,11 +60,11 @@ class AudioPlayer:
     def send_to_audio_player_process(self, message):
         self.audio_player_process().stdin.write(bytes(message, 'utf-8'))
         self.audio_player_process().stdin.flush()
-        
+
     def play(self, stream_url):
         play_message = self.audio_player_protocol().play_message_for(stream_url)
         self.send_to_audio_player_process(play_message)
-    
+
     def pause(self):
         pause_message = self.audio_player_protocol().pause_message()
         self.send_to_audio_player_process(pause_message)
@@ -72,11 +72,11 @@ class AudioPlayer:
     def unpause(self):
         unpause_message = self.audio_player_protocol().unpause_message()
         self.send_to_audio_player_process(unpause_message)
-    
+
     def stop(self):
         stop_message = self.audio_player_protocol().stop_message()
         self.send_to_audio_player_process(stop_message)
-    
+
     def set_volume(self, volume_percentage):
         volume_message = self.audio_player_protocol().volume_with(volume_percentage)
         self.send_to_audio_player_process(volume_message)
@@ -84,16 +84,16 @@ class AudioPlayer:
 class MusicService:
     def __init__(self, mobile_client):
         self._mobile_client = mobile_client
-    
+
     def mobile_client(self):
         return self._mobile_client
 
     def search_results_for(self, search_term, max_results=10):
         search_results = self.mobile_client().search(search_term)['song_hits']
         results_to_return = min(max_results, len(search_results))
-        
+
         return search_results[:results_to_return]
-    
+
     def get_stream_for(self, track):
         return self.mobile_client().get_stream_url(track['storeId']) 
 
@@ -127,7 +127,7 @@ class Application:
                 self.commands[command]()
             else:
                 print("{} is not an option.".format(command))
-    
+
     def play_song(self):
         search_term = input("Search for: ")
         print()
@@ -138,14 +138,14 @@ class Application:
         for item in enumerate(song_results):
             print("{}. {} from {} by {}".format(item[0] + 1, item[1]['track']['title'], item[1]['track']['album'], item[1]['track']['artist']))
         print()
-        
+
         song_index = int(input("Select song: ")) - 1
         print()
         selected_track = song_results[song_index]['track']
         stream = self.music_service.get_stream_for(selected_track)
 
         self.audio_player.play(stream)
-    
+
     def pause_song(self):
         self.audio_player.pause()
 
@@ -170,7 +170,7 @@ def get_authenitcated_client():
 
     client = Mobileclient()
     client.login(email, password, Mobileclient.FROM_MAC_ADDRESS)
-    
+
     if not client.is_authenticated():
         print("Failied to authenticate, try again.")
         return get_authenitcated_client()
@@ -179,7 +179,7 @@ def get_authenitcated_client():
 if __name__ == "__main__":
     print("Sign into your Google Music account:\n")
     client = get_authenitcated_client()
-    
+
     audio_player = AudioPlayer()
     music_service = MusicService(client)
 
