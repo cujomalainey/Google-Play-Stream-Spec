@@ -178,8 +178,7 @@ class Application:
                           "4" : self.unpause_song,
                           "5" : self.stop_song,
                           "6" : self.set_volume,
-                          "7" : self.change_color,
-                          "8" : self.exit }
+                          "7" : self.change_color}
 
         self.audio_player.with_on_song_finished_listener(self.on_song_finished)
 
@@ -195,7 +194,6 @@ class Application:
             print("5. Stop current song")
             print("6. Set volume")
             print("7. Change color")
-            print("8. Exit")
 
             command = input("")
             print()
@@ -211,23 +209,42 @@ class Application:
         print("Artist: {}".format(current_track['artist']))
         print()
 
+    def get_selection(self, items, item_name = "item", item_printer = lambda index, item:print("{}. {}".format(index, item))):
+        print("Select a(n) {}: ".format(item_name))
+
+        for item in enumerate(items):
+            item_printer(item[0], item[1])
+    
+        none_of_the_above_index = len(items)
+        print("{}. None of the above\n".format(none_of_the_above_index + 1))
+
+        selected_index = int(input("Select {}: ".format(item_name))) - 1
+        print()
+
+        if selected_index != none_of_the_above_index:
+            return selected_index
+        return None
+
     def play_song(self):
         search_term = input("Search for: ")
         print()
 
-        song_results = self.music_service.search_results_for(search_term)
+        song_hits = self.music_service.search_results_for(search_term)
 
-        print("Select song to play:")
-        for item in enumerate(song_results):
-            print("{}. {} from {} by {}".format(item[0] + 1, item[1]['track']['title'].encode('ascii', 'ignore'), item[1]['track']['album'].encode('ascii', 'ignore'), item[1]['track']['artist'].encode('ascii', 'ignore')))
-        print()
+        def print_song_hit(index, song_hit):
+            track = song_hit['track']
+            title = track['title'].encode('ascii', 'ignore').decode('ascii')
+            album = track['album'].encode('ascii', 'ignore').decode('ascii')
+            artist = track['artist'].encode('ascii', 'ignore').decode('ascii')
+            print("{}. {} from {} by {}".format(index + 1, title, album, artist))
+            
+        selected_song_index = self.get_selection(song_hits, "song", print_song_hit)
 
-        song_index = int(input("Select song: ")) - 1
-        print()
-        selected_track = song_results[song_index]['track']
-        stream = self.music_service.get_stream_for(selected_track)
+        if selected_song_index is not None:
+            selected_track = song_hits[selected_song_index]['track']
+            stream = self.music_service.get_stream_for(selected_track)
 
-        self.audio_player.play(stream)
+            self.audio_player.play(stream)
 
     def play_playlist(self):
         search_term = input("Search for playlist: ")
@@ -235,7 +252,7 @@ class Application:
 
         playlist_results = self.music_service.playlist_results_for(search_term)
 
-        print("Select song to play:")
+        print("Select playlist to play:")
         for item in enumerate(playlist_results):
             print("{}. {}".format(item[0] + 1, item[1]['name'].encode('ascii', 'ignore')))
         print()
@@ -289,10 +306,6 @@ class Application:
         volume_percentage = input("New volume: ")
         print()
         self.audio_player.set_volume(volume_percentage)
-
-    def exit(self):
-        self.audio_player.close()
-        self.active = False
 
 def get_authenitcated_client():
     email = input("Email: ")
