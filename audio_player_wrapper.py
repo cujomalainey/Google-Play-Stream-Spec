@@ -105,6 +105,10 @@ class AudioPlayer():
     def set_color(self, level, red, green, blue):
         set_color_message = self.audio_player_protocol().color_message(level, red, green, blue)
         self.send_to_audio_player_process(set_color_message)
+    
+    def set_refresh_rate(self, period):
+        set_refresh_message = self.audio_player_protocol().refresh_rate(period)
+        self.send_to_audio_player_process(set_refresh_message)
 
 class MusicService:
     def __init__(self, mobile_client):
@@ -179,7 +183,8 @@ class Application:
                           "4" : self.unpause_song,
                           "5" : self.stop_song,
                           "6" : self.set_volume,
-                          "7" : self.change_color}
+                          "7" : self.set_refresh,
+                          "8" : self.change_color}
 
         self.audio_player.with_on_song_finished_listener(self.on_song_finished)
 
@@ -194,7 +199,8 @@ class Application:
             print("4. Unpause current song")
             print("5. Stop current song")
             print("6. Set volume")
-            print("7. Change color")
+            print("7. Set refresh")
+            print("8. Change color")
 
             command = input("")
             print()
@@ -315,6 +321,11 @@ class Application:
         print()
         self.audio_player.set_volume(volume_percentage)
 
+    def set_refresh(self):
+        refresh_period = input("New refresh period: ")
+        print()
+        self.audio_player.set_refresh_rate(refresh_period)
+        
 def get_authenitcated_client():
     email = input("Email: ")
     password = getpass.getpass("Password: ")
