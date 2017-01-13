@@ -9,6 +9,7 @@ API between programs
 
 ### To C
 All commands end with a \n
+
 All commands that do not have parameters have a trailing space
 
 ```
