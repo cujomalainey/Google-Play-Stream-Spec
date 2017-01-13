@@ -171,6 +171,9 @@ class TrackList:
 
     def has_next_track(self):
         return self._position + 1 < len(self._tracks)
+    
+    def has_tracks(self):
+        return len(self._tracks) != 0
 
     def add_track(self, track):
         self._tracks.append(track)
@@ -189,15 +192,16 @@ class Application:
         self.active = True
         self.commands = { "1" : self.play_song,
                           "2" : self.play_playlist,
-                          "3" : self.increment_track_and_play,
-                          "4" : self.decrement_track_and_play,
-                          "5" : self.pause_song,
-                          "6" : self.unpause_song,
-                          "7" : self.stop_song,
-                          "8" : self.set_volume,
-                          "9" : self.set_refresh,
-                          "10" : self.change_color,
-                          "11" : self.reset_player }
+                          "3" : self.print_current_song,
+                          "4" : self.increment_track_and_play,
+                          "5" : self.decrement_track_and_play,
+                          "6" : self.pause_song,
+                          "7" : self.unpause_song,
+                          "8" : self.stop_song,
+                          "9" : self.set_volume,
+                          "10" : self.set_refresh,
+                          "11" : self.change_color,
+                          "12" : self.reset_player }
 
         self.audio_player.with_on_song_finished_listener(self.on_song_finished)
 
@@ -208,15 +212,16 @@ class Application:
             print("What do you want to do")
             print("1. Search for a song")
             print("2. Search for a playlist")
-            print("3. Next Song")
-            print("4. Previous Song")
-            print("5. Pause current song")
-            print("6. Unpause current song")
-            print("7. Stop current song")
-            print("8. Set volume")
-            print("9. Set refresh")
-            print("10. Change color")
-            print("11. Reset player")
+            print("3. Current song info")
+            print("4. Next song")
+            print("5. Previous song")
+            print("6. Pause current song")
+            print("7. Unpause current song")
+            print("8. Stop current song")
+            print("9. Set volume")
+            print("10. Set refresh")
+            print("11. Change color")
+            print("12. Reset player")
 
             command = input("")
             print()
@@ -229,11 +234,14 @@ class Application:
         self.active = False
 
     def print_current_song(self):
-        current_track = self.track_list.get_current_track()
-        print("Title: {}".format(current_track['title']))
-        print("Album: {}".format(current_track['album']))
-        print("Artist: {}".format(current_track['artist']))
-        print()
+        if self.track_list.has_tracks():
+            current_track = self.track_list.get_current_track()
+            print("Title: {}".format(current_track['title']))
+            print("Album: {}".format(current_track['album']))
+            print("Artist: {}".format(current_track['artist']))
+            print()
+        else:
+            print("No active song.\n")
 
     def get_selection(self, items, item_name = "item", item_to_string = lambda item : print(item)):
         print("Select a(n) {}: ".format(item_name))
@@ -301,11 +309,15 @@ class Application:
         if self.track_list.has_previous_track():
             self.track_list.decrement_track()
             self.play_current_track()
+        else:
+            print("No previous track\n")
 
     def increment_track_and_play(self):
         if self.track_list.has_next_track():
             self.track_list.increment_track()
             self.play_current_track()
+        else:
+            print("No next track\n")
 
     def play_current_track(self):
         stream = self.music_service.get_stream_for(self.track_list.get_current_track())
@@ -331,7 +343,7 @@ class Application:
         print()
 
         self.audio_player.set_color(level, red, green, blue)
-
+        print("Colors updated.\n")
 
     def on_song_finished(self):
         if self.track_list.has_next_track():
@@ -342,14 +354,17 @@ class Application:
         volume_percentage = get_int_input("New volume: ")
         print()
         self.audio_player.set_volume(volume_percentage)
+        print("Volume update.\n")
 
     def set_refresh(self):
         refresh_period = get_int_input("New refresh period: ")
         print()
         self.audio_player.set_refresh_rate(refresh_period)
+        print("Refresh period updated.\n")
 
     def reset_player(self):
         self.audio_player.reset()
+        print("Player reset.\n")
 
 def get_int_input(prompt):
     int_transform = lambda x : int(x)
