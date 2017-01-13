@@ -18,6 +18,7 @@
 #define CHAIN 4
 #define ROWS 32
 #define REFRESH_RATE 30
+#define THREAD_CHECK_DELAY 500
 
 #define MAX(x,y) ((x > y) ? x : y)
 
@@ -31,8 +32,8 @@ using namespace rgb_matrix;
 #endif
 DWORD chan;
 
-bool playing = false;
-bool alive = true;
+volatile bool playing = false;
+volatile bool alive = true;
 
 const RGB main_palette[] = {
   {0, 200, 0},
@@ -134,12 +135,14 @@ void *threadFunc(void *arg)
       fflush(stdout);
       playing = false;
     }
+    usleep(THREAD_CHECK_DELAY * 1000);
   }
 }
 
 void handle_play(char* str)
 {
     DWORD r;
+    playing = false;
     BASS_StreamFree(chan); // close old stream
     if (!(chan=BASS_StreamCreateURL(str,0,BASS_STREAM_BLOCK|BASS_STREAM_STATUS|BASS_STREAM_AUTOFREE,NULL,(void*)r))) {
       printf("BASS Error: %d\n", BASS_ErrorGetCode());
