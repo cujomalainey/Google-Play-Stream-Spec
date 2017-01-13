@@ -105,7 +105,7 @@ class AudioPlayer():
     def set_color(self, level, red, green, blue):
         set_color_message = self.audio_player_protocol().color_message(level, red, green, blue)
         self.send_to_audio_player_process(set_color_message)
-    
+
     def set_refresh_rate(self, period):
         set_refresh_message = self.audio_player_protocol().refresh_rate(period)
         self.send_to_audio_player_process(set_refresh_message)
@@ -240,7 +240,7 @@ class Application:
 
         for item in enumerate(items):
             print("{}. {}".format(item[0] + 1, item_to_string(item[1])))
-    
+
         none_of_the_above_index = len(items)
         print("{}. None of the above\n".format(none_of_the_above_index + 1))
 
@@ -263,14 +263,14 @@ class Application:
             album = track['album'].encode('ascii', 'ignore').decode('ascii')
             artist = track['artist'].encode('ascii', 'ignore').decode('ascii')
             return "{} from {} by {}".format(title, album, artist)
-            
+
         selected_song_index = self.get_selection(song_hits, "song", song_hit_to_string)
 
         if selected_song_index is not None:
             selected_track = song_hits[selected_song_index]['track']
-            
+
             self.set_tracks([selected_track])
-            self.play_current_track() 
+            self.play_current_track()
 
     def play_playlist(self):
         search_term = input("Search for playlist: ")
@@ -289,8 +289,8 @@ class Application:
             tracks = self.music_service.get_tracks_for(selected_playlist_token)
 
             self.set_tracks(tracks)
-            self.play_current_track() 
-    
+            self.play_current_track()
+
     def set_tracks(self, tracks):
         self.track_list.clear()
 
@@ -312,7 +312,7 @@ class Application:
         self.audio_player.play(stream)
 
         print("Now playing...")
-        self.print_current_song()  
+        self.print_current_song()
 
     def pause_song(self):
         self.audio_player.pause()
