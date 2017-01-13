@@ -163,6 +163,12 @@ class TrackList:
     def increment_track(self):
         self._position += 1
 
+    def decrement_track(self):
+        self._position -= 1
+
+    def has_previous_track(self):
+        return self._position != 0
+
     def has_next_track(self):
         return self._position < len(self._tracks)
 
@@ -183,13 +189,15 @@ class Application:
         self.active = True
         self.commands = { "1" : self.play_song,
                           "2" : self.play_playlist,
-                          "3" : self.pause_song,
-                          "4" : self.unpause_song,
-                          "5" : self.stop_song,
-                          "6" : self.set_volume,
-                          "7" : self.set_refresh,
-                          "8" : self.change_color,
-                          "9" : self.reset_player }
+                          "3" : self.increment_track_and_play,
+                          "4" : self.decrement_track_and_play,
+                          "5" : self.pause_song,
+                          "6" : self.unpause_song,
+                          "7" : self.stop_song,
+                          "8" : self.set_volume,
+                          "9" : self.set_refresh,
+                          "10" : self.change_color,
+                          "11" : self.reset_player }
 
         self.audio_player.with_on_song_finished_listener(self.on_song_finished)
 
@@ -200,13 +208,15 @@ class Application:
             print("What do you want to do")
             print("1. Search for a song")
             print("2. Search for a playlist")
-            print("3. Pause current song")
-            print("4. Unpause current song")
-            print("5. Stop current song")
-            print("6. Set volume")
-            print("7. Set refresh")
-            print("8. Change color")
-            print("9. Reset player")
+            print("3. Next Song")
+            print("4. Previous Song")
+            print("5. Pause current song")
+            print("6. Unpause current song")
+            print("7. Stop current song")
+            print("8. Set volume")
+            print("9. Set refresh")
+            print("10. Change color")
+            print("11. Reset player")
 
             command = input("")
             print()
@@ -286,6 +296,16 @@ class Application:
 
         for track in tracks:
             self.track_list.add_track(track)
+
+    def decrement_track_and_play(self):
+        if self.track_list.has_previous_track():
+            self.track_list.decrement_track()
+            self.play_current_track()
+
+    def increment_track_and_play(self):
+        if self.track_list.has_next_track():
+            self.track_list.increment_track()
+            self.play_current_track()
 
     def play_current_track(self):
         stream = self.music_service.get_stream_for(self.track_list.get_current_track())
