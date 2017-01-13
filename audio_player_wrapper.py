@@ -242,9 +242,9 @@ class Application:
 
         if selected_song_index is not None:
             selected_track = song_hits[selected_song_index]['track']
-            stream = self.music_service.get_stream_for(selected_track)
-
-            self.audio_player.play(stream)
+            
+            self.set_tracks([selected_track])
+            self.play_current_track() 
 
     def play_playlist(self):
         search_term = input("Search for playlist: ")
@@ -262,16 +262,21 @@ class Application:
             selected_playlist_token = playlist_results[selected_playlist_index]['shareToken']
             tracks = self.music_service.get_tracks_for(selected_playlist_token)
 
-            self.track_list.clear()
+            self.set_tracks(tracks)
+            self.play_current_track() 
+    
+    def set_tracks(self, tracks):
+        self.track_list.clear()
 
-            for track in tracks:
-                self.track_list.add_track(track)
+        for track in tracks:
+            self.track_list.add_track(track)
 
-            stream = self.music_service.get_stream_for(self.track_list.get_current_track())
-            self.audio_player.play(stream)
+    def play_current_track(self):
+        stream = self.music_service.get_stream_for(self.track_list.get_current_track())
+        self.audio_player.play(stream)
 
-            print("Now playing...")
-            self.print_current_song()   
+        print("Now playing...")
+        self.print_current_song()  
 
     def pause_song(self):
         self.audio_player.pause()
