@@ -37,6 +37,16 @@ class AudioPlayer:
         self._audio_player_listener_thread = None
         self._audio_player_protocol = audio_player_protocol
 
+        # event handlers
+        self._on_song_finished_listener = None
+
+    def with_on_song_finished_listener(self, listener):
+        self._on_song_finished_listener = listener
+
+    def dispatch_on_song_finished(self):
+        if self._on_song_finished_listener:
+            self._on_song_finished_listener()
+
     def audio_player_process(self):
         return self._audio_player_process
 
@@ -62,9 +72,10 @@ class AudioPlayer:
 
     def listen(self):
         while self._is_listening_to_audio_player:
-            output = self._audio_player_process.stdout.readline()
+            output = self._audio_player_process.stdout.readline().strip()
             if output:
-                print(output)
+                if (output == "finished")
+                    self.dispatch_on_song_finished()
 
     def send_to_audio_player_process(self, message):
         self.audio_player_process().stdin.write(bytes(message, 'utf-8'))
@@ -218,7 +229,7 @@ class Application:
         tracks = self.music_service.get_tracks_for(selected_playlist_token)
 
         self.track_list.clear()
-        
+
         for track in tracks:
             self.track_list.add_track(track)
         
