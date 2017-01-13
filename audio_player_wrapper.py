@@ -72,13 +72,13 @@ class AudioPlayer():
 
     def listen(self):
         while self._is_listening_to_audio_player:
-            output = self._audio_player_process.stdout.readline().strip()
+            output = self._audio_player_process.stdout.readline().strip().decode('ascii')
             if output:
-                if (output == "finished")
+                if "finished" in output:
                     self.dispatch_on_song_finished()
 
     def send_to_audio_player_process(self, message):
-        self.audio_player_process().stdin.write(bytes(message, 'utf-8'))
+        self.audio_player_process().stdin.write(bytes(message, 'ascii'))
         self.audio_player_process().stdin.flush()
 
     def play(self, stream_url):
@@ -101,6 +101,10 @@ class AudioPlayer():
         volume_message = self.audio_player_protocol().volume_with(volume_percentage)
         self.send_to_audio_player_process(volume_message)
 
+    def set_color(self, level, red, green, blue):
+        set_color_message = self.audio_player_protocol().color_message(level, red, green, blue)
+        self.send_to_audio_player_process(set_color_message)
+
 class MusicService:
     def __init__(self, mobile_client):
         self._mobile_client = mobile_client
@@ -113,7 +117,7 @@ class MusicService:
         results_to_return = min(max_results, len(search_results))
 
         return search_results[:results_to_return]
-    
+
     def playlist_results_for(self, search_term, max_results=10):
         playlist_hits = self.mobile_client().search(search_term)['playlist_hits']
         playlist_results = [hit['playlist'] for hit in playlist_hits]
@@ -133,7 +137,7 @@ class MusicService:
 class TrackList:
     def __init__(self):
         self.clear()
-    
+
     def clear(self):
         self._tracks = []
         self._position = 0
@@ -150,9 +154,12 @@ class TrackList:
     def increment_track(self):
         self._position += 1
 
+    def has_next_track(self):
+        return self._position < len(self._tracks)
+
     def add_track(self, track):
         self._tracks.append(track)
-    
+
     def remove_track_at(self, position):
         self._tracks.pop(position)
 
@@ -169,9 +176,12 @@ class Application:
                           "2" : self.play_playlist,
                           "3" : self.pause_song,
                           "4" : self.unpause_song,
-                          "4" : self.stop_song,
+                          "5" : self.stop_song,
                           "6" : self.set_volume,
-                          "7" : self.exit }
+                          "7" : self.change_color,
+                          "8" : self.exit }
+
+        self.audio_player.with_on_song_finished_listener(self.on_song_finished)
 
     def run(self):
         self.audio_player.open()
@@ -184,7 +194,8 @@ class Application:
             print("4. Unpause current song")
             print("5. Stop current song")
             print("6. Set volume")
-            print("7. Exit")
+            print("7. Change color")
+            print("8. Exit")
 
             command = input("")
             print()
@@ -192,6 +203,13 @@ class Application:
                 self.commands[command]()
             else:
                 print("{} is not an option.".format(command))
+
+    def print_current_song(self):
+        current_track = self.track_list.get_current_track()
+        print("Title: {}".format(current_track['title']))
+        print("Album: {}".format(current_track['album']))
+        print("Artist: {}".format(current_track['artist']))
+        print()
 
     def play_song(self):
         search_term = input("Search for: ")
@@ -201,7 +219,7 @@ class Application:
 
         print("Select song to play:")
         for item in enumerate(song_results):
-            print("{}. {} from {} by {}".format(item[0] + 1, item[1]['track']['title'], item[1]['track']['album'], item[1]['track']['artist']))
+            print("{}. {} from {} by {}".format(item[0] + 1, item[1]['track']['title'].encode('ascii', 'ignore'), item[1]['track']['album'].encode('ascii', 'ignore'), item[1]['track']['artist'].encode('ascii', 'ignore')))
         print()
 
         song_index = int(input("Select song: ")) - 1
@@ -210,7 +228,7 @@ class Application:
         stream = self.music_service.get_stream_for(selected_track)
 
         self.audio_player.play(stream)
-    
+
     def play_playlist(self):
         search_term = input("Search for playlist: ")
         print()
@@ -219,7 +237,7 @@ class Application:
 
         print("Select song to play:")
         for item in enumerate(playlist_results):
-            print("{}. {}".format(item[0] + 1, item[1]['name']))
+            print("{}. {}".format(item[0] + 1, item[1]['name'].encode('ascii', 'ignore')))
         print()
 
         playlist_index = int(input("Select playlist: ")) - 1
@@ -232,9 +250,12 @@ class Application:
 
         for track in tracks:
             self.track_list.add_track(track)
-        
+
         stream = self.music_service.get_stream_for(self.track_list.get_current_track())
         self.audio_player.play(stream)
+
+        print("Now playing...")
+        self.print_current_song()   
 
     def pause_song(self):
         self.audio_player.pause()
@@ -244,6 +265,25 @@ class Application:
 
     def stop_song(self):
         self.audio_player.stop()
+
+    def change_color(self):
+        level = int(input("Level: "))
+        red = int(input("Red: "))
+        green = int(input("Green: "))
+        blue = int(input("Blue: "))
+        print()
+
+        self.audio_player.set_color(level, red, green, blue)
+
+
+    def on_song_finished(self):
+        if self.track_list.has_next_track():
+            self.track_list.increment_track()
+            stream = self.music_service.get_stream_for(self.track_list.get_current_track())
+            self.audio_player.play(stream)
+
+            print("Now playing...")
+            self.print_current_song()
 
     def set_volume(self):
         volume_percentage = input("New volume: ")
