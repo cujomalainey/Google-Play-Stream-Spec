@@ -209,11 +209,11 @@ class Application:
         print("Artist: {}".format(current_track['artist']))
         print()
 
-    def get_selection(self, items, item_name = "item", item_printer = lambda index, item:print("{}. {}".format(index, item))):
+    def get_selection(self, items, item_name = "item", item_to_string = lambda item : print(item)):
         print("Select a(n) {}: ".format(item_name))
 
         for item in enumerate(items):
-            item_printer(item[0], item[1])
+            print("{}. {}".format(item[0] + 1, item_to_string(item[1])))
     
         none_of_the_above_index = len(items)
         print("{}. None of the above\n".format(none_of_the_above_index + 1))
@@ -226,19 +226,19 @@ class Application:
         return None
 
     def play_song(self):
-        search_term = input("Search for: ")
+        search_term = input("Search for song: ")
         print()
 
         song_hits = self.music_service.search_results_for(search_term)
 
-        def print_song_hit(index, song_hit):
+        def song_hit_to_string(song_hit):
             track = song_hit['track']
             title = track['title'].encode('ascii', 'ignore').decode('ascii')
             album = track['album'].encode('ascii', 'ignore').decode('ascii')
             artist = track['artist'].encode('ascii', 'ignore').decode('ascii')
-            print("{}. {} from {} by {}".format(index + 1, title, album, artist))
+            return "{} from {} by {}".format(title, album, artist)
             
-        selected_song_index = self.get_selection(song_hits, "song", print_song_hit)
+        selected_song_index = self.get_selection(song_hits, "song", song_hit_to_string)
 
         if selected_song_index is not None:
             selected_track = song_hits[selected_song_index]['track']
@@ -252,27 +252,26 @@ class Application:
 
         playlist_results = self.music_service.playlist_results_for(search_term)
 
-        print("Select playlist to play:")
-        for item in enumerate(playlist_results):
-            print("{}. {}".format(item[0] + 1, item[1]['name'].encode('ascii', 'ignore')))
-        print()
+        def playlist_hit_to_string(playlist_hit):
+            title = playlist_hit['name'].encode('ascii', 'ignore').decode('ascii')
+            return title
 
-        playlist_index = int(input("Select playlist: ")) - 1
-        print()
+        selected_playlist_index = self.get_selection(playlist_results, "playlist", playlist_hit_to_string)
 
-        selected_playlist_token = playlist_results[playlist_index]['shareToken']
-        tracks = self.music_service.get_tracks_for(selected_playlist_token)
+        if selected_playlist_index is not None:
+            selected_playlist_token = playlist_results[selected_playlist_index]['shareToken']
+            tracks = self.music_service.get_tracks_for(selected_playlist_token)
 
-        self.track_list.clear()
+            self.track_list.clear()
 
-        for track in tracks:
-            self.track_list.add_track(track)
+            for track in tracks:
+                self.track_list.add_track(track)
 
-        stream = self.music_service.get_stream_for(self.track_list.get_current_track())
-        self.audio_player.play(stream)
+            stream = self.music_service.get_stream_for(self.track_list.get_current_track())
+            self.audio_player.play(stream)
 
-        print("Now playing...")
-        self.print_current_song()   
+            print("Now playing...")
+            self.print_current_song()   
 
     def pause_song(self):
         self.audio_player.pause()
