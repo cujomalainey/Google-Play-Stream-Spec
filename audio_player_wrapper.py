@@ -170,7 +170,7 @@ class TrackList:
         return self._position != 0
 
     def has_next_track(self):
-        return self._position < len(self._tracks)
+        return self._position + 1 < len(self._tracks)
 
     def add_track(self, track):
         self._tracks.append(track)
@@ -223,7 +223,7 @@ class Application:
             if command in self.commands:
                 self.commands[command]()
             else:
-                print("{} is not an option.".format(command))
+                print("{} is not an option.\n".format(command))
 
     def stop(self):
         self.active = False
