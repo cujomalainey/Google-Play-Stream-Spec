@@ -316,11 +316,7 @@ class Application:
     def on_song_finished(self):
         if self.track_list.has_next_track():
             self.track_list.increment_track()
-            stream = self.music_service.get_stream_for(self.track_list.get_current_track())
-            self.audio_player.play(stream)
-
-            print("Now playing...")
-            self.print_current_song()
+            self.play_current_track()
 
     def set_volume(self):
         volume_percentage = input("New volume: ")
