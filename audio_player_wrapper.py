@@ -244,7 +244,7 @@ class Application:
         none_of_the_above_index = len(items)
         print("{}. None of the above\n".format(none_of_the_above_index + 1))
 
-        selected_index = int(input("Select {}: ".format(item_name))) - 1
+        selected_index = get_int_input("Select {}: ".format(item_name)) - 1
         print()
 
         if selected_index != none_of_the_above_index:
@@ -324,10 +324,10 @@ class Application:
         self.audio_player.stop()
 
     def change_color(self):
-        level = int(input("Level: "))
-        red = int(input("Red: "))
-        green = int(input("Green: "))
-        blue = int(input("Blue: "))
+        level = get_int_input("Level: ")
+        red = get_int_input("Red: ")
+        green = get_int_input("Green: ")
+        blue = get_int_input("Blue: ")
         print()
 
         self.audio_player.set_color(level, red, green, blue)
@@ -339,17 +339,30 @@ class Application:
             self.play_current_track()
 
     def set_volume(self):
-        volume_percentage = input("New volume: ")
+        volume_percentage = get_int_input("New volume: ")
         print()
         self.audio_player.set_volume(volume_percentage)
 
     def set_refresh(self):
-        refresh_period = input("New refresh period: ")
+        refresh_period = get_int_input("New refresh period: ")
         print()
         self.audio_player.set_refresh_rate(refresh_period)
 
     def reset_player(self):
         self.audio_player.reset()
+
+def get_int_input(prompt):
+    int_transform = lambda x : int(x)
+    input_is_int = lambda x : x.isdigit()
+
+    return get_input(prompt, int_transform, input_is_int)
+
+def get_input(prompt = "", input_transform = lambda x : x, input_is_valid = lambda x : True):
+    user_input = input(prompt)
+    while not input_is_valid(user_input):
+        print("Input is invalid, try again.")
+        user_input = input(prompt)
+    return input_transform(user_input)
 
 def get_authenitcated_client():
     email = input("Email: ")
