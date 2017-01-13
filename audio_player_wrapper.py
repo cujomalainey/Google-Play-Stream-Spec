@@ -30,7 +30,7 @@ class AudioPlayerProtocolV1:
     def refresh_rate(self, period):
         return "refresh {}\n".format(period)
 
-class AudioPlayer:
+class AudioPlayer():
     def __init__(self, audio_player_protocol = AudioPlayerProtocolV1()):
         self._audio_player_process = None
         self._is_listening_to_audio_player = False
@@ -128,7 +128,7 @@ class MusicService:
         return tracks
 
     def get_stream_for(self, track):
-        return self.mobile_client().get_stream_url(track['storeId']) 
+        return self.mobile_client().get_stream_url(track['storeId'])
 
 class TrackList:
     def __init__(self):

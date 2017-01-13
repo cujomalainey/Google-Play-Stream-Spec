@@ -9,6 +9,7 @@
 #include <bass.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define SPECWIDTH 64 // display width (should be multiple of 4)
 #define SPECHEIGHT 32  // height (changing requires palette adjustments too)
@@ -31,6 +32,7 @@ using namespace rgb_matrix;
 DWORD chan;
 
 bool playing = false;
+bool alive = true;
 
 const RGB main_palette[] = {
   {0, 200, 0},
@@ -100,12 +102,6 @@ public:
         while (--y>=0) drawBarRow(x, y, palette[y]); // draw level
       }
       usleep(refresh_rate * 1000);
-      if (playing && BASS_StreamGetFilePosition(chan, BASS_FILEPOS_CURRENT) == BASS_StreamGetFilePosition(chan, BASS_FILEPOS_SIZE))
-      {
-        printf("finished\n");
-        fflush(stdout);
-        playing = false;
-      }
     }
   }
 
@@ -127,6 +123,19 @@ private:
   int t_;
 };
 #endif
+
+void *threadFunc(void *arg)
+{
+  while(alive)
+  {
+    if (playing && BASS_StreamGetFilePosition(chan, BASS_FILEPOS_CURRENT) == BASS_StreamGetFilePosition(chan, BASS_FILEPOS_SIZE))
+    {
+      printf("finished\n");
+      fflush(stdout);
+      playing = false;
+    }
+  }
+}
 
 void handle_play(char* str)
 {
@@ -289,6 +298,8 @@ int main(int argc, char *argv[])
   image_gen->Start();
 #endif
   char url[1000];
+  pthread_t pth;
+  pthread_create(&pth, NULL, threadFunc, NULL);
   while (true)
   {
     fgets(url, sizeof(url), stdin);
@@ -324,6 +335,7 @@ int main(int argc, char *argv[])
     else if (strncmp(url, "stop ", 5) == 0)
     {
       BASS_Stop();
+      alive = false;
       return 0;
     }
   }
