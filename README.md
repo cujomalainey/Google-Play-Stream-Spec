@@ -7,33 +7,51 @@ This project takes in a google play command and generates the specturm analysis 
 
 API between programs
 
-To C
+### To C
 
-```play <URL>```
+```
+play <URL>
+```
 Plays the given url immidietally
 
-```pause```
+```
+pause
+```
 pause the current song
 
-```unpause```
+```
+unpause
+```
 resumes song
 
-```stop```
+```
+stop
+```
 stop the current song
 
-```quit```
+```
+quit
+```
 closes the process
 
-```color <level> <RED> <GREEN> <BLUE>```
+```
+color <level> <RED> <GREEN> <BLUE>
+```
 redefined color of a level (0-3) using RGB color code
 
-```volume <percent>```
+```
+volume <percent>
+```
 sets volume percent
 
-```reset ```
+```
+reset
+```
 make sure you have the trailing space, resets bar colors and refresh rate
 
-From C
+### From C
 
-```finished```
+```
+finished
+```
 Playback for the current song has finished
