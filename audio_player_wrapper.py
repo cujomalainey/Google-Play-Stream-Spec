@@ -3,6 +3,7 @@ import fcntl
 import subprocess
 import threading
 import getpass
+import signal
 from gmusicapi import Mobileclient
 
 class AudioPlayerProtocolV1:
@@ -202,6 +203,9 @@ class Application:
             else:
                 print("{} is not an option.".format(command))
 
+    def stop(self):
+        self.active = False
+
     def print_current_song(self):
         current_track = self.track_list.get_current_track()
         print("Title: {}".format(current_track['title']))
@@ -331,4 +335,14 @@ if __name__ == "__main__":
     music_service = MusicService(client)
 
     app = Application(audio_player, music_service)
+
+    def sig_handler(signal, frame):
+        audio_player.close()
+        app.stop()
+        print("Goodbye.")
+        exit()
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+
     app.run()
