@@ -8,6 +8,8 @@ This project takes in a google play command and generates the specturm analysis 
 API between programs
 
 ### To C
+All commands end with a \n
+All commands that do not have parameters have a trailing space
 
 ```
 play <URL>
