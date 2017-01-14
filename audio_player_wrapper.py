@@ -114,7 +114,7 @@ class AudioPlayer():
         reset_message = self.audio_player_protocol().reset_message()
         self.send_to_audio_player_process(reset_message)
 
-class MusicService:
+class GooglePlayMusicService:
     def __init__(self, mobile_client):
         self._mobile_client = mobile_client
 
@@ -388,10 +388,10 @@ def get_authenitcated_client():
 
 if __name__ == "__main__":
     print("Sign into your Google Music account:\n")
-    client = get_authenitcated_client()
+    google_play_client = get_authenitcated_client()
 
     audio_player = AudioPlayer()
-    music_service = MusicService(client)
+    music_service = GooglePlayMusicService(google_play_client)
 
     app = Application(audio_player, music_service)
 
