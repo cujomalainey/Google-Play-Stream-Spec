@@ -197,11 +197,10 @@ class Application:
                           "5" : self.decrement_track_and_play,
                           "6" : self.pause_song,
                           "7" : self.unpause_song,
-                          "8" : self.stop_song,
-                          "9" : self.set_volume,
-                          "10" : self.set_refresh,
-                          "11" : self.change_color,
-                          "12" : self.reset_player }
+                          "8" : self.set_volume,
+                          "9" : self.set_refresh,
+                          "10" : self.change_color,
+                          "11" : self.reset_player }
 
         self.audio_player.with_on_song_finished_listener(self.on_song_finished)
 
@@ -217,11 +216,10 @@ class Application:
             print("5. Previous song")
             print("6. Pause current song")
             print("7. Unpause current song")
-            print("8. Stop current song")
-            print("9. Set volume")
-            print("10. Set refresh")
-            print("11. Change color")
-            print("12. Reset player")
+            print("8. Set volume")
+            print("9. Set refresh")
+            print("10. Change color")
+            print("11. Reset player")
 
             command = input("")
             print()
@@ -255,7 +253,7 @@ class Application:
         selected_index = get_int_input("Select {}: ".format(item_name)) - 1
         print()
 
-        if selected_index != none_of_the_above_index:
+        if selected_index >= 0 and selected_index < none_of_the_above_index:
             return selected_index
         return None
 
@@ -331,9 +329,6 @@ class Application:
 
     def unpause_song(self):
         self.audio_player.unpause()
-
-    def stop_song(self):
-        self.audio_player.stop()
 
     def change_color(self):
         level = get_int_input("Level: ")
