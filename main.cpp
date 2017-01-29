@@ -92,15 +92,17 @@ public:
     while (running()) {
       float fft[1024];
       BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
-      for (x=0;x<SPECWIDTH;x++) {
+      for (x=0;x<SPECWIDTH*2;x+=2) {
         y=sqrt(fft[x+1])*3*SPECHEIGHT-4; // scale it (sqrt to make low values more visible)
         if (y>SPECHEIGHT) y=SPECHEIGHT; // cap it
         y2 = SPECHEIGHT + 1;
-        while (--y2>MAX(y,y1)) drawBarRow(x, y2, {0,0,0});
-        if (x && (y1=(y+y1)/2)) // interpolate from previous to make the display smoother
-          while (--y1>=0) drawBarRow(x, y1, palette[y1]);
+        y1 = (y1+y)/2;
+        while (--y2>y1) drawBarRow(x, y2, {0,0,0});
+        while (--y1>=0) drawBarRow(x, y1, palette[y1]);
         y1=y;
-        while (--y>=0) drawBarRow(x, y, palette[y]); // draw level
+        y2 = SPECHEIGHT + 1;
+        while (--y2>y) drawBarRow(x+1, y2, {0,0,0});
+        while (--y>=0) drawBarRow(x+1, y, palette[y]); // draw level
       }
       usleep(refresh_rate * 1000);
     }
@@ -108,9 +110,7 @@ public:
 
 private:
   void drawBarRow(int bar, uint8_t y, RGB color) {
-    for (uint8_t x=bar*barWidth_; x<(bar+1)*barWidth_; ++x) {
-      canvas()->SetPixel(x, height_-1-y, color.rgbRed, color.rgbGreen, color.rgbBlue);
-    }
+    canvas()->SetPixel(bar, height_-1-y, color.rgbRed, color.rgbGreen, color.rgbBlue);
   }
 
   int delay_ms_;
