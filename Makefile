@@ -1,7 +1,8 @@
 CXXFLAGS=-Wall -O3 -g -fno-strict-aliasing
+COMMON_LIBS=-lstdc++
 
-all:
-	gcc main.cpp -lm -lpthread -lrgbmatrix -lstdc++ -lbass $(CXXFLAGS) -DRASPBERRY_PI=1
+audio: audio.cpp
+	gcc audio.cpp -lm -lbass -lbassmix $(COMMON_LIBS) $(CXXFLAGS) -o audio
 
-osx:
-	gcc main.cpp -lm -lstdc++ -lbass $(CXXFLAGS) -DRASPBERRY_PI=0 -I. -L.
+matrix: matrix.cpp
+	gcc main.cpp -lrgbmatrix $(COMMON_LIBS) $(CXXFLAGS) -o matrix

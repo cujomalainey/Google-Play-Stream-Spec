@@ -1,9 +1,12 @@
 #include <led-matrix.h>
 #include <threaded-canvas-manipulator.h>
+#include <sys/socket.h>
 
 #define CHAIN 4
 #define ROWS 32
 #define REFRESH_RATE 30
+#define MAX(x,y) ((x > y) ? x : y)
+
 
 const RGB main_palette[] = {
   {0, 200, 0},
