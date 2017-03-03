@@ -40,3 +40,6 @@ __pycache__/
 *.mp3
 *.dylib
 bass.h
+
+audio
+matrix
