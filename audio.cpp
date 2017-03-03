@@ -32,7 +32,10 @@ int main(int argc, char *argv[])
   }
 
   BASS_PluginLoad("libbass_aac.so",0); // load BASS_AAC (if present) for AAC support
+
   while(1){}
+
+  BASS_RecordFree();
   BASS_Free();
   return 0;
 }
