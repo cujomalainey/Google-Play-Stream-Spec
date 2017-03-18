@@ -106,7 +106,7 @@ public:
         while (--y2>y) drawBarRow(x+1, y2, {0,0,0});
         while (--y>=0) drawBarRow(x+1, y, palette[y]); // draw level
       }
-      printf("FFT: %d", y_max);
+      printf("FFT: %d\n", y_max);
       usleep(refresh_rate * 1000);
     }
   }
