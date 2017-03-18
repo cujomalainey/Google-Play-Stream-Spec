@@ -85,12 +85,12 @@ public:
   void Run() {
     int x,y,y1,y2, y_max;
     y1 = 0;
-    y_max = 0;
     height_ = canvas()->height();
     barWidth_ = 2; //width/numBars_;
 
     // Start the loop
     while (running()) {
+      y_max = 0;
       float fft[1024];
       BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
       for (x=0;x<SPECWIDTH*2;x+=2) {

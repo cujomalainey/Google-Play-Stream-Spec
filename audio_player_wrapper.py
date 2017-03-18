@@ -57,7 +57,6 @@ class AudioPlayer():
     def open(self):
         self._audio_player_process = subprocess.Popen("./a.out", \
                                                       stdin=subprocess.PIPE, \
-                                                      stderr=subprocess.PIPE, \
                                                       stdout=subprocess.PIPE)
 
         self.listen_to_audio_player_process()
