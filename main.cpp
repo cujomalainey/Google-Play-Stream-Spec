@@ -83,8 +83,9 @@ public:
   }
 
   void Run() {
-    int x,y,y1,y2;
+    int x,y,y1,y2, y_max;
     y1 = 0;
+    y_max = 0;
     height_ = canvas()->height();
     barWidth_ = 2; //width/numBars_;
 
@@ -94,6 +95,7 @@ public:
       BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
       for (x=0;x<SPECWIDTH*2;x+=2) {
         y=sqrt(fft[x+1])*3*SPECHEIGHT-4; // scale it (sqrt to make low values more visible)
+        y_max = (y_max < y) ? y : y_max;
         if (y>SPECHEIGHT) y=SPECHEIGHT; // cap it
         y2 = SPECHEIGHT + 1;
         y1 = (y1+y)/2;
@@ -104,6 +106,7 @@ public:
         while (--y2>y) drawBarRow(x+1, y2, {0,0,0});
         while (--y>=0) drawBarRow(x+1, y, palette[y]); // draw level
       }
+      printf("FFT: %d", y_max);
       usleep(refresh_rate * 1000);
     }
   }
