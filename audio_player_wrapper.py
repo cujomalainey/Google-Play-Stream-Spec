@@ -74,7 +74,6 @@ class AudioPlayer():
     def listen(self):
         while self._is_listening_to_audio_player:
             output = self._audio_player_process.stdout.readline().strip().decode('ascii')
-            print(output)
             if output:
                 if "finished" in output:
                     self.dispatch_on_song_finished()
