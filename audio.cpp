@@ -3,6 +3,7 @@
 #include <bassmix.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #define SPECWIDTH 64 // display width (should be multiple of 4)
 #define SPECHEIGHT 32  // height (changing requires palette adjustments too)
@@ -10,7 +11,7 @@
 #define MAX(x,y) ((x > y) ? x : y)
 HRECORD line_in;
 HSTREAM line_out;
-
+uint16_t refresh_rate = 5;
 int main(int argc, char *argv[])
 {
   // initialize BASS
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
   {
     int x, y, y_max;
     y_max = 0;
-    BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
+    BASS_ChannelGetData(line_in,fft,BASS_DATA_FFT2048); // get the FFT data
     for (x=0;x<SPECWIDTH*2;x+=2) {
       y=sqrt(fft[x+1])*3*SPECHEIGHT-4; // scale it (sqrt to make low values more visible)
       y_max = MAX(y, y_max);
