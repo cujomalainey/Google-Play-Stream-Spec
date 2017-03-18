@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     printf("Can't initialize device\n");
     return 0;
   }
+  BASS_SetConfig(BASS_CONFIG_UPDATETHREADS, 3);
 
   line_in = BASS_RecordStart(44100, 2, 0, NULL, NULL);
   line_out = BASS_Mixer_StreamCreate(44100, 2, 0);
