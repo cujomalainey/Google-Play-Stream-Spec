@@ -6,7 +6,7 @@ Purpose: Create a real time dynamic display powered by streamed music
 This project takes in a google play commands and generates the specturm analysis and plays the stream at the same time.
 
 Demo video here
-[![demovideo](https://img.youtube.com/vi/YFZku60ZxKU&lc/0.jpg)](https://www.youtube.com/watch?v=YFZku60ZxKU&lc)
+[![demovideo](https://img.youtube.com/vi/YFZku60ZxKU/0.jpg)](https://www.youtube.com/watch?v=YFZku60ZxKU&lc)
 
 API between programs
 
