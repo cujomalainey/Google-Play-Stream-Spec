@@ -88,6 +88,8 @@ public:
     height_ = canvas()->height();
     barWidth_ = 2; //width/numBars_;
 
+    printf("i'm in the loop");
+    fflush(stdout);
     // Start the loop
     while (running()) {
       float fft[1024];
@@ -106,6 +108,9 @@ public:
       }
       usleep(refresh_rate * 1000);
     }
+
+    printf("i'm out of the loop");
+    fflush(stdout);
   }
 
 private:
@@ -134,9 +139,6 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  refresh_rate = REFRESH_RATE;
-  playing = true;
-
   // Need to be root for this
   GPIO io;
   if (!io.Init())
@@ -154,12 +156,10 @@ int main(int argc, char *argv[])
     return 0;
   }
 
-  BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST,1); // enable playlist processing
-  BASS_SetConfig(BASS_CONFIG_NET_PREBUF,0); // minimize automatic pre-buffering, so we can do it (and display it) instead
-
-  BASS_PluginLoad("libbass_aac.so",0); // load BASS_AAC (if present) for AAC support
   chan = BASS_StreamCreateFile(false, "music.mp3", 0, 0, NULL);
   BASS_ChannelPlay(chan, false);
+  refresh_rate = REFRESH_RATE;
+  playing = true;
 #if (RASPBERRY_PI)
   image_gen->Start();
 #endif
