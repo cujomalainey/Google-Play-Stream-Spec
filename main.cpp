@@ -158,12 +158,11 @@ int main(int argc, char *argv[])
   BASS_SetConfig(BASS_CONFIG_NET_PREBUF,0); // minimize automatic pre-buffering, so we can do it (and display it) instead
 
   BASS_PluginLoad("libbass_aac.so",0); // load BASS_AAC (if present) for AAC support
+  chan = BASS_StreamCreateFile(false, "music.mp3", 0, 0, NULL);
+  BASS_ChannelPlay(chan, false);
 #if (RASPBERRY_PI)
   image_gen->Start();
 #endif
-  char url[1000];
-  chan = BASS_StreamCreateFile(false, "music.mp3", 0, 0, NULL);
-  BASS_ChannelPlay(chan, false);
   while (true)
   {
   }
