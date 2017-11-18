@@ -148,6 +148,8 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  refresh_rate = REFRESH_RATE;
+  playing = true;
 
   // Need to be root for this
   GPIO io;
