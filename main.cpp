@@ -93,7 +93,13 @@ public:
     // Start the loop
     while (running()) {
       float fft[1024];
-      BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
+      DWORD err = BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
+      if (err) {
+        printf("fail!");
+        fflush(stdout);
+        continue;
+      }
+
       for (x=0;x<SPECWIDTH*2;x+=2) {
         y=sqrt(fft[x+1])*3*SPECHEIGHT-4; // scale it (sqrt to make low values more visible)
         if (y>SPECHEIGHT) y=SPECHEIGHT; // cap it
