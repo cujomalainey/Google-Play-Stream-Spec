@@ -125,20 +125,6 @@ private:
 };
 #endif
 
-void *threadFunc(void *arg)
-{
-  while(alive)
-  {
-    if (playing && BASS_StreamGetFilePosition(chan, BASS_FILEPOS_CURRENT) == BASS_StreamGetFilePosition(chan, BASS_FILEPOS_SIZE))
-    {
-      printf("finished\n");
-      fflush(stdout);
-      playing = false;
-    }
-    usleep(THREAD_CHECK_DELAY * 1000);
-  }
-}
-
 int main(int argc, char *argv[])
 {
 #if (RASPBERRY_PI)
@@ -176,8 +162,6 @@ int main(int argc, char *argv[])
   image_gen->Start();
 #endif
   char url[1000];
-  pthread_t pth;
-  pthread_create(&pth, NULL, threadFunc, NULL);
   chan = BASS_StreamCreateFile(false, "music.mp3", 0, 0, NULL);
   BASS_ChannelPlay(chan, false);
   while (true)
