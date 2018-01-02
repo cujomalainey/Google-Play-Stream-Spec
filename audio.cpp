@@ -7,17 +7,17 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define SPECWIDTH 64 // display width (should be multiple of 4)
-#define SPECHEIGHT 32  // height (changing requires palette adjustments too)
-#define BANDS 64
+#define SPECWIDTH 128 // display width (should be multiple of 4)
+#define SPECHEIGHT 100  // height (changing requires palette adjustments too)
 #define SERVER "192.168.0.32"
 #define BUFLEN 144  //Max length of buffer
 #define PORT 8888   //The port on which to send data
+#define ALPHA 0.15
 #define MAX(x,y) ((x > y) ? x : y)
 
 HRECORD line_in;
 HSTREAM line_out;
-uint16_t refresh_rate = 5;
+uint16_t refresh_rate = 25;
 
 void die(char *s)
 {
@@ -29,11 +29,10 @@ int main(int argc, char *argv[])
 {
   struct sockaddr_in si_other;
   int s, i, slen=sizeof(si_other);
-  char buf[BUFLEN];
-  char message[BUFLEN];
-  float fft[1024];
+  uint8_t message[BUFLEN];
+  float fft[1024], fft2[1024];
   // initialize BASS
-  if (!BASS_Init(-1,44100,0,NULL,NULL) || !BASS_RecordInit(-1))
+  if (!BASS_Init(-1,44100,0,NULL,NULL) || !BASS_RecordInit(1))
   {
     printf("Can't initialize device\n");
     return 0;
@@ -55,11 +54,12 @@ int main(int argc, char *argv[])
       exit(1);
   }
 
-  line_in = BASS_RecordStart(44100, 2, 0, NULL, NULL);
+  line_in = BASS_RecordStart(44100, 1, 0, NULL, NULL);
 
-  if (!BASS_RecordStart(48000, 1, 0, NULL, NULL))
+  if (!line_in)
   {
     printf("Can't record channel\n");
+    exit(1);
   }
 
   while(1)
@@ -67,13 +67,12 @@ int main(int argc, char *argv[])
     int x, y, y_max;
     y_max = 0;
     BASS_ChannelGetData(line_in,fft,BASS_DATA_FFT2048); // get the FFT data
-    for (x=0;x<SPECWIDTH*2;x+=2) {
-      y=sqrt(fft[x+1])*3*SPECHEIGHT-4; // scale it (sqrt to make low values more visible)
-      y_max = MAX(y, y_max);
+    for (x=0;x<SPECWIDTH;x++) {
+      fft2[x + 1] = (fft[x + 1]*ALPHA) + (fft2[x + 1]*(1 - ALPHA));
+      message[x] = fft2[x+1]*10*SPECHEIGHT;
     }
-    fprintf(stderr, "FFT: %d\n", y_max);
     //send the message
-    if (sendto(s, message, strlen(message) , 0 , (struct sockaddr *) &si_other, slen)==-1)
+    if (sendto(s, message, sizeof(message) , 0 , (struct sockaddr *) &si_other, slen)==-1)
     {
         die("sendto()");
     }

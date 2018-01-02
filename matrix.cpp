@@ -1,14 +1,31 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
 #include <led-matrix.h>
 #include <threaded-canvas-manipulator.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
-#define CHAIN 4
 #define ROWS 32
+#define CHAIN 4
 #define REFRESH_RATE 30
+#define BANDS 128
+#define SPECWIDTH BANDS
+#define SPECHEIGHT 32
 #define MAX(x,y) ((x > y) ? x : y)
+#define BUFLEN 512  //Max length of buffer
+#define PORT 8888   //The port on which to listen for incoming data
+#define BYTE uint8_t
 
+#pragma pack(1)
+typedef struct {
+  BYTE rgbRed,rgbGreen,rgbBlue;
+} RGB;
+#pragma pack()
 
-const RGB main_palette[] = {
+const RGB palette[] = {
   {0, 200, 0},
   {0, 200, 0},
   {0, 200, 0},
@@ -43,15 +60,13 @@ const RGB main_palette[] = {
   {200, 0, 0}
 };
 
-RGB palette[ROWS];
-
-#pragma pack(1)
-typedef struct {
-  BYTE rgbRed,rgbGreen,rgbBlue;
-} RGB;
-#pragma pack()
-
 using namespace rgb_matrix;
+
+void die(char *s)
+{
+    perror(s);
+    exit(1);
+}
 
 class VolumeBars : public ThreadedCanvasManipulator {
 public:
@@ -61,29 +76,47 @@ public:
   }
 
   void Run() {
-    int x,y,y1,y2;
-    y1 = 0;
+    struct sockaddr_in si_me;
+    int x, y, y2, recv_len, s;
     height_ = canvas()->height();
     barWidth_ = 2; //width/numBars_;
+      //create a UDP socket
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+    {
+        die("socket");
+    }
 
+    // zero out the structure
+    memset((char *) &si_me, 0, sizeof(si_me));
+
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(PORT);
+    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    //bind socket to port
+    if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
+    {
+        die("bind");
+    }
     // Start the loop
     while (running()) {
-      float fft[1024];
-      BASS_ChannelGetData(chan,fft,BASS_DATA_FFT2048); // get the FFT data
-      for (x=0;x<SPECWIDTH*2;x+=2) {
-        y=sqrt(fft[x+1])*3*SPECHEIGHT-4; // scale it (sqrt to make low values more visible)
-        if (y>SPECHEIGHT) y=SPECHEIGHT; // cap it
-        y2 = SPECHEIGHT + 1;
-        y1 = (y1+y)/2;
-        while (--y2>y1) drawBarRow(x, y2, {0,0,0});
-        while (--y1>=0) drawBarRow(x, y1, palette[y1]);
-        y1=y;
-        y2 = SPECHEIGHT + 1;
-        while (--y2>y) drawBarRow(x+1, y2, {0,0,0});
-        while (--y>=0) drawBarRow(x+1, y, palette[y]); // draw level
+      uint8_t fft[144];
+      //try to receive some data, this is a blocking call
+      if ((recv_len = recvfrom(s, fft, BUFLEN, 0, NULL, NULL)) == -1)
+      {
+          die("recvfrom()");
       }
-      usleep(refresh_rate * 1000);
+
+      //print details of the client/peer and the data received
+      for (x=0;x<SPECWIDTH;x++) {
+        y = fft[x] - 1;
+        y2 = SPECHEIGHT;
+        if (y>SPECHEIGHT) y=SPECHEIGHT; // cap it
+        while (--y2>y) drawBarRow(x, y2, {0,0,0});
+        while (--y>=0) drawBarRow(x, y, palette[y]);
+      }
     }
+    close(s);
   }
 
 private:
@@ -110,8 +143,6 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  reset_colors();
-
   // Need to be root for this
   GPIO io;
   if (!io.Init())
@@ -121,10 +152,11 @@ int main(int argc, char *argv[])
 
   Canvas *canvas = matrix;
 
-  ThreadedCanvasManipulator *image_gen = image_gen = new VolumeBars(canvas, REFRESH_RATE);
+  ThreadedCanvasManipulator *image_gen  = new VolumeBars(canvas, REFRESH_RATE);
 
   image_gen->Start();
 
+  while(1){}
   // Stop image generating thread.
   delete image_gen;
   delete canvas;
