@@ -1,3 +1,5 @@
+# this project is now READONLY as Google Play music has been deprecated
+
 # gplay-stream-spec
 Creates a real time frequency spectrum display using google play music
 
